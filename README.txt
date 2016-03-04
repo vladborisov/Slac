@@ -4,7 +4,7 @@ Minoring in Logic, I quickly realized that sentential and propositional systems 
 
  
 
-Slac is designed to be readable and complete. I built it from scratch during my breaks between classes over the course of a week, and it occupies just over 400 lines at the current moment.
+Slac is designed to be readable and complete. I built it from scratch during my breaks between classes over the course of a week, and it occupies just over 400 lines of C++ at the current moment.
 
  
 
