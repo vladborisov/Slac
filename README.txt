@@ -1,3 +1,11 @@
+VERSION 1.1 UPDATES
+------- --- -------
++  In the Slac 1.0 release version, users had to manually specify and assign truth-values for each atomic component/sentence. Slac 1.1 replaces this with an automatic scan/prompt system. This is a bit more time & memory-intensive, but serves for a much better user experience.
++  Added support for sentences with brackets as well as parentheses.
++  Controls for input and minor bug fixes.
+
+=============================================
+
 Ahah! My first project.
 
 Minoring in Logic, I quickly realized that sentential and propositional systems rely on a mostly mechanical method of evaluation. Hence, Slac was born! You'll find it here.
