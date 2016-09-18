@@ -1,6 +1,6 @@
 //
 //  SLAC: A Sentential Logic Algebra Calculator
-//  Created by Vladislav Borisov on 2/29/16.
+//  Created by Vladislav Borisov on 4/26/16.
 //  Copyright © 2016 na. All rights reserved.
 //
 //
@@ -22,6 +22,17 @@
 //
 
 
+// VERSION 1.1
+// ------- ---
+
+// + In the Slac 1.0 release version, users had to manually
+//   specify and assign truth-values for each atomic component/sentence.
+//   Slac 1.1 replaces this with an automatic scan/prompt system.
+//   This is a bit more time & memory-intensive, but serves for a much better user experience.
+// + Added support for sentences with brackets as well as parentheses.
+// + Controls for input and minor bug fixes.
+
+
 #include <iostream>
 #include <iomanip>
 #include <stack>
@@ -35,23 +46,23 @@ using namespace std;
 // OPERATORS
 /*
  
-// EXTERNAL OPERATORS
-// +++++++++
-// CONJUNCTION      &
-// DISJUNCTION      v
-// NEGATION         ~
-// CONDITIONAL      ->
-// BICONDITIONAL    <->
-
-// INTERNAL OPERATORS
-// +++++++++
-// CONJUNCTION      &
-// DISJUNCTION      v
-// NEGATION         ~
-// CONDITIONAL      >
-// BICONDITIONAL    =
+ // EXTERNAL OPERATORS
+ // +++++++++
+ // CONJUNCTION      &
+ // DISJUNCTION      v
+ // NEGATION         ~
+ // CONDITIONAL      ->
+ // BICONDITIONAL    <->
  
-*/
+ // INTERNAL OPERATORS
+ // +++++++++
+ // CONJUNCTION      &
+ // DISJUNCTION      v
+ // NEGATION         ~
+ // CONDITIONAL      >
+ // BICONDITIONAL    =
+ 
+ */
 
 // Intro & Info
 void introtext ()
@@ -70,7 +81,7 @@ void introtext ()
     cout << "Slac evaluates the truth-value for any given proposition!" << endl;
     cout << "Slac uses the system of symbolic logic known as Sentential or Propositional Logic." << endl << endl;
     
-    cout << "Please use left  \"(\"  and right  \")\"  parentheses when necessary." << endl;
+    cout << "Please use parentheses  \"(\"  \")\"  or brackets  \"[\"  \"]\"  when necessary." << endl;
     cout << "Please note that Slac uses the following standard logical operator symbols: " << endl;
     cout << "CONJUNCTION      &" << endl;
     cout << "DISJUNCTION      v" << endl;
@@ -92,7 +103,7 @@ bool cont ()
         return true;
     else if (contresp == "N" || contresp == "n" || contresp == "NO" || contresp == "no" || contresp == "No")
         cout << "Thank you for using Slac!" << endl << "Exiting with normal conditions now." << endl;
-        return false;
+    return false;
     return false;
 }
 
@@ -101,31 +112,31 @@ bool cont ()
 //    bool for assigned or evaluated truth-value
 class slElem
 {
-    private:
-        char cval;
-        bool tval;
-    public:
-        slElem(char c, bool t)
-        {
-            cval = c;
-            tval = t;
-        }
-        slElem (char c)
-        {
-            cval = c;
-        }
-        char gets()
-        {
-            return cval;
-        }
-        bool gett()
-        {
-            return tval;
-        }
-        void sett(bool t)
-        {
-            tval = t;
-        }
+private:
+    char cval;
+    bool tval;
+public:
+    slElem(char c, bool t)
+    {
+        cval = c;
+        tval = t;
+    }
+    slElem (char c)
+    {
+        cval = c;
+    }
+    char getc()
+    {
+        return cval;
+    }
+    bool gett()
+    {
+        return tval;
+    }
+    void sett(bool t)
+    {
+        tval = t;
+    }
 };
 
 // ACCEPTS char token
@@ -138,13 +149,23 @@ bool isoperator (char tok)
         return false;
 }
 
+// ACCEPTS char token
+// RETURNS true if atomic component sentence character, false if not
+bool issentchar (char tok)
+{
+    if ( (tok == 'A') || (tok == 'B') || (tok == 'C') || (tok == 'D') || (tok == 'E') || (tok == 'F') || (tok == 'G') || (tok == 'H') || (tok == 'I') || (tok == 'J') || (tok == 'K') || (tok == 'L') || (tok == 'M') || (tok == 'N') || (tok == 'O') || (tok == 'P') || (tok == 'Q') || (tok == 'R') || (tok == 'S') || (tok == 'T') || (tok == 'U') || (tok == 'V') || (tok == 'W') || (tok == 'X') || (tok == 'Y') || (tok == 'Z') )
+        return true;
+    else
+        return false;
+}
+
 // ACCEPTS left element, right element, operator element
 // RETURNS operator element w/ truth value of local expression
 slElem evaltv (slElem left, slElem right, slElem  oper)
 {
     slElem result('$');
     
-    if (oper.gets() == '&')
+    if (oper.getc() == '&')
     {
         if ( (left.gett() == true) && (right.gett() == true) )
         {
@@ -155,7 +176,7 @@ slElem evaltv (slElem left, slElem right, slElem  oper)
         return result;
     }
     
-    if (oper.gets() == 'v')
+    if (oper.getc() == 'v')
     {
         if ( (left.gett() == true) ||  (right.gett() == true) )
         {
@@ -166,7 +187,7 @@ slElem evaltv (slElem left, slElem right, slElem  oper)
         return result;
     }
     
-    if (oper.gets() == '>')
+    if (oper.getc() == '>')
     {
         if ( (left.gett() == true) && (right.gett() == false) )
         {
@@ -177,7 +198,7 @@ slElem evaltv (slElem left, slElem right, slElem  oper)
         return result;
     }
     
-    if (oper.gets() == '=')
+    if (oper.getc() == '=')
     {
         if ( ( (left.gett() == true) && (right.gett() == true) ) || ( (left.gett() == false) && (right.gett() == false) ) )
         {
@@ -187,7 +208,6 @@ slElem evaltv (slElem left, slElem right, slElem  oper)
         result.sett(false);
         return result;
     }
-
     return result;
 }
 
@@ -217,6 +237,28 @@ string cleaner (string expr)
         else
             break;
     }
+    while (true)
+    {
+        size_t found = expr.find("[");
+        if (found!=string::npos)
+        {
+            expr.erase(found, 1);
+            expr.insert(found, "(");
+        }
+        else
+            break;
+    }
+    while (true)
+    {
+        size_t found = expr.find("]");
+        if (found!=string::npos)
+        {
+            expr.erase(found, 1);
+            expr.insert(found, ")");
+        }
+        else
+            break;
+    }
     return expr;
 }
 
@@ -237,16 +279,21 @@ string postfixer (string expr)
         }
         else if ( isoperator(token) )
         {
-            while ( (!mys.empty()) && (isoperator(mys.top())) )
+            if (token != '~')
             {
-                myq.push( mys.top() );
-                mys.pop();
+                while ( (!mys.empty()) && (isoperator(mys.top())) )
+                {
+                    myq.push( mys.top() );
+                    mys.pop();
+                }
             }
             mys.push(token);
+            
         }
         else if (token == '(')
         {
             mys.push(token);
+            
         }
         else if (token == ')')
         {
@@ -270,6 +317,7 @@ string postfixer (string expr)
         newS = newS + (myq.front());
         myq.pop();
     }
+    
     return newS;
 }
 
@@ -296,40 +344,59 @@ vector<slElem> preparer (string expr)
     return ready;
 }
 
+// ACCEPTS vector of found char letters and a char component
+// RETURNS bool true if present, false if not
+bool amipresent (vector<char> done, char newcompontocheck)
+{
+    for (int i=0; i < done.size(); i++)
+        if (newcompontocheck == done[i])
+            return true;
+    return false;
+}
+
 // ACCEPTS cleaned postfix element vector
 // RETURNS cleaned postfix element vector w/ truth-value assignments
 vector<slElem> assigner (vector<slElem> myElems)
 {
-    bool go = true;
-    string gos;
-    while (go)
+    vector<char> done;
+    vector<char> compons;
+    
+    for (int i = (int(myElems.size())-1); i >= 0; i--)
     {
-        char current;
+        if ( issentchar( myElems[i].getc() ) )
+            compons.push_back( myElems[i].getc() );
+    }
+
+    done.push_back(compons[0]);
+    
+    for (int i=1; i < compons.size(); i++)
+        if ( ! (amipresent(done, compons[i])) )
+            done.push_back(compons[i]);
+    
+    while ( ! done.empty() )
+    {
         char tvac;
         bool tvab;
-        cout << "Please enter an atomic component of your proposition:  ";
-        cin >> current; //cout << endl;
-        cout << "Enter the truth-value assignment for sentence \" " << current << " \" :  ";
-        cin >> tvac; //cout << endl << endl;
         
-        if (tvac == 'T' || tvac == 't' || tvac == '1')
-            tvab = true;
-        else
-            tvab = false;
-        
-        for (int i=0; i<myElems.size(); i++)
+        for (int i=(int(done.size())-1); i >= 0; i--)
         {
-            if ( (myElems[i].gets()) == current)
-                myElems[i].sett(tvab);
+            cout << "Please enter the truth-value assignment for sentence \" " << done[i] << " \" :  ";
+            cin >> tvac;
+            
+            if (tvac == 'T' || tvac == 't' || tvac == '1')
+                tvab = true;
+            else
+                tvab = false;
+            
+            for (int j=0; j<myElems.size(); j++)
+            {
+                if ( (myElems[j].getc()) == done[i])
+                {
+                    myElems[j].sett(tvab);
+                }
+            }
+            done.pop_back();
         }
-        
-        cout << "Do you have another truth-value to set?  ( Y / N ):  ";
-        cin >> gos;
-        
-        if (gos == "Y" || gos == "y" || gos == "YES" || gos == "yes" || gos == "Yes")
-            go = true;
-        else if (gos == "N" || gos == "n" || gos == "NO" || gos == "no" || gos == "No")
-            go = false;
     }
     return myElems;
 }
@@ -341,22 +408,22 @@ bool evalbase (vector<slElem> myElems)
     stack<slElem> mys;
     for (int i = 0; i<myElems.size(); i++)
     {
-        if(!(isoperator(myElems[i].gets())))
+        if(!(isoperator(myElems[i].getc())))
             mys.push(myElems[i]);
-        if (isoperator(myElems[i].gets()))
+        if (isoperator(myElems[i].getc()))
         {
-            if ( myElems[i].gets() == '~' )
+            if ( myElems[i].getc() == '~' )
             {
                 mys.top().sett( !( mys.top().gett() ) );
             }
             else
             {
-                slElem right( (mys.top().gets()), (mys.top().gett()) );
+                slElem right( (mys.top().getc()), (mys.top().gett()) );
                 mys.pop();
-                slElem left ( (mys.top().gets()), (mys.top().gett()) );
+                slElem left ( (mys.top().getc()), (mys.top().gett()) );
                 mys.pop();
                 
-                slElem oper( (myElems[i].gets()), (myElems[i].gett()) );
+                slElem oper( (myElems[i].getc()), (myElems[i].gett()) );
                 
                 mys.push( evaltv(left, right, oper) );
             }
