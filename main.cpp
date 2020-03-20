@@ -1,221 +1,138 @@
 //
-//  SLAC: A Sentential Logic Algebra Calculator
-//  Created by Vladislav Borisov on 4/26/16.
-//  Copyright © 2016 na. All rights reserved.
+//  slac
 //
-//
-//
-//
-//       _____ _               _____
-//      / ____| |        /\   / ____|
-//     | (___ | |       /  \ | |
-//      \___ \| |      / /\ \| |
-//      ____) | |____ / ____ \ |____
-//     |_____/|______/_/    \_\_____|
-//
-// = ========== ===== ======= ==========
-// A Sentential Logic Algebra Calculator
-// = ========== ===== ======= ==========
-//
-//           Vladislav Borisov
-//
+//  Vladislav Borisov
+//  Copyright © 2020 na. All rights reserved.
 //
 
 
-// VERSION 1.1
-// ------- ---
-
-// + In the Slac 1.0 release version, users had to manually
-//   specify and assign truth-values for each atomic component/sentence.
-//   Slac 1.1 replaces this with an automatic scan/prompt system.
-//   This is a bit more time & memory-intensive, but serves for a much better user experience.
-// + Added support for sentences with brackets as well as parentheses.
-// + Controls for input and minor bug fixes.
-
-
+// <----- INCLUDES ----->
+#include "slElement.h"
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <stack>
 #include <queue>
-#include <string>
 #include <sstream>
 #include <stdlib.h>
 using namespace std;
 
 
-// OPERATORS
-/*
- 
- // EXTERNAL OPERATORS
- // +++++++++
- // CONJUNCTION      &
- // DISJUNCTION      v
- // NEGATION         ~
- // CONDITIONAL      ->
- // BICONDITIONAL    <->
- 
- // INTERNAL OPERATORS
- // +++++++++
- // CONJUNCTION      &
- // DISJUNCTION      v
- // NEGATION         ~
- // CONDITIONAL      >
- // BICONDITIONAL    =
- 
- */
+// <----- FUNCTION DECLARATIONS ----->
+void introText();
+string cleaner(string);
+string postfixer(string);
+bool isOperator (char);
+vector<slElement> slElementer (string);
+vector<slElement> assigner (vector <slElement>);
+bool evalBase (vector<slElement>);
+slElement eval (slElement, slElement, slElement);
+bool cont ();
 
-// Intro & Info
-void introtext ()
+
+// <----- DRIVER ----->
+int main(int argc, const char * argv[])
 {
-    cout << "       _____ _               _____      " << endl;
-    cout << "      / ____| |        /\\   / ____|     " << endl;
-    cout << "     | (___ | |       /  \\ | |          " << endl;
-    cout << "      \\___ \\| |      / /\\ \\| |          " << endl;
-    cout << "      ____) | |____ / ____ \\ |____      " << endl;
-    cout << "     |_____/|______/_/    \\_\\_____|     " << endl << endl;
-    cout << " = ========== ===== ======= ==========  " << endl;
-    cout << " A Sentential Logic Algebra Calculator  " << endl;
-    cout << " = ========== ===== ======= ==========  " << endl << endl;
-    cout << "           Vladislav Borisov            " << endl << endl << endl;
+    introText();
     
-    cout << "Slac evaluates the truth-value for any given proposition!" << endl;
-    cout << "Slac uses the system of symbolic logic known as Sentential or Propositional Logic." << endl << endl;
+    bool play = true;
+    string myExpr;
     
-    cout << "Please use parentheses  \"(\"  \")\"  or brackets  \"[\"  \"]\"  when necessary." << endl;
-    cout << "Please note that Slac uses the following standard logical operator symbols: " << endl;
+    while (play)
+    {
+        bool result;
+        cout << "Please enter your proposition:" << endl;
+        cout << "------ ----- ---- ------------" << endl << endl;
+
+        
+        cin >> myExpr;                                              // Original Expression
+        cout << endl;
+        string originalExpr = myExpr;
+        
+        myExpr = cleaner(myExpr);                                   // Cleaned for Uniform/Single-Character Parsing
+        
+        myExpr = postfixer(myExpr);                                 // Postfixed
+        
+        
+        vector<slElement> myExprElemented = slElementer(myExpr);    // Parsed to slElements Vector
+        
+        myExprElemented = assigner (myExprElemented);               // with Truth Values
+        
+        result = evalBase(myExprElemented);
+        
+        cout << endl << endl << "                         ";
+        for(int i  =0; i < originalExpr.size(); i++)
+            cout << "-";
+        cout << endl << "Your expression          " << originalExpr << endl;
+        cout << "has a truth value of     ";
+        
+        if (result)
+        {
+            cout << "TRUE" << endl;
+            cout << "                         ----" << endl;
+        }
+        else
+        {
+            cout << "FALSE" << endl;
+            cout << "                         -----" << endl;
+        }
+        
+        cout << endl << endl;
+        
+        play = cont();
+    }
+    
+    return 0;
+}
+
+
+// <----- Introductory Text ----->
+// <----- ACCEPTS: n/a ----->
+// <----- RETURNS: n/a ----->
+void introText()
+{
+    cout << "            _____ _               _____      " << endl;
+    cout << "           / ____| |        /\\   / ____|     " << endl;
+    cout << "          | (___ | |       /  \\ | |          " << endl;
+    cout << "           \\___ \\| |      / /\\ \\| |          " << endl;
+    cout << "           ____) | |____ / ____ \\ |____      " << endl;
+    cout << "          |_____/|______/_/    \\_\\_____|     " << endl << endl;
+    cout << "      = ========== ===== ======= ==========  " << endl;
+    cout << "      A Sentential Logic Algebra Calculator  " << endl;
+    cout << "      = ========== ===== ======= ==========  " << endl << endl;
+    cout << "                Vladislav Borisov            " << endl << endl << endl << endl;
+    
+    
+    
+    cout << "Slac evaluates the truth-value for any given proposition!" << endl << endl;
+    
+    cout << "Slac uses the system of symbolic logic known as Sentential or Propositional Logic." << endl << endl << endl << endl;
+    
+    
+
+    cout << "Please use parentheses  (  )  or brackets  [  ]  when necessary," << endl;
+    cout << " including to group usage of the unary negation symbol ~ ." << endl << endl;
+    cout << "   IE              A v ~B        |           A v ~(B&C)" << endl;
+    cout << "              as   A v (~B)      |      as   A v (~(B&C))" << endl << endl << endl << endl;
+    
+    
+    
+    cout << "Please note that Slac uses the following standard logical operator symbols: " << endl << endl;
+    
     cout << "CONJUNCTION      &" << endl;
     cout << "DISJUNCTION      v" << endl;
     cout << "NEGATION         ~" << endl;
     cout << "CONDITIONAL      >  OR  ->"  << endl;
-    cout << "BICONDITIONAL    =  OR  <->" << endl << endl << endl;
+    cout << "BICONDITIONAL    =  OR  <->" << endl << endl << endl << endl;
 }
 
-// Controls user interaction for primary loop in main
-bool cont ()
-{
-    string contresp;
-    cout << "Would you like to evaluate another proposition?  ( Y / N )" << endl;
-    
-    cin >> contresp;
-    cout << endl << endl;
-    
-    if (contresp == "Y" || contresp == "y" || contresp == "YES" || contresp == "yes" || contresp == "Yes")
-        return true;
-    else if (contresp == "N" || contresp == "n" || contresp == "NO" || contresp == "no" || contresp == "No")
-        cout << "Thank you for using Slac!" << endl << "Exiting with normal conditions now." << endl;
-    return false;
-    return false;
-}
 
-// Logical Symbol Class
-//    char for symbol or placeholder
-//    bool for assigned or evaluated truth-value
-class slElem
+// <----- Cleans Expression to Ensure Single-Character Operators & Parenthetical Grouping ----->
+// <----- ACCEPTS: original infix string ----->
+// <----- RETURNS: cleaned infix string ----->
+string cleaner(string expr)
 {
-private:
-    char cval;
-    bool tval;
-public:
-    slElem(char c, bool t)
-    {
-        cval = c;
-        tval = t;
-    }
-    slElem (char c)
-    {
-        cval = c;
-    }
-    char getc()
-    {
-        return cval;
-    }
-    bool gett()
-    {
-        return tval;
-    }
-    void sett(bool t)
-    {
-        tval = t;
-    }
-};
-
-// ACCEPTS char token
-// RETURNS true if operator, false if not
-bool isoperator (char tok)
-{
-    if ((tok == '&') || (tok == 'v') || (tok == '~') || (tok == '>') || (tok == '='))
-        return true;
-    else
-        return false;
-}
-
-// ACCEPTS char token
-// RETURNS true if atomic component sentence character, false if not
-bool issentchar (char tok)
-{
-    if ( (tok == 'A') || (tok == 'B') || (tok == 'C') || (tok == 'D') || (tok == 'E') || (tok == 'F') || (tok == 'G') || (tok == 'H') || (tok == 'I') || (tok == 'J') || (tok == 'K') || (tok == 'L') || (tok == 'M') || (tok == 'N') || (tok == 'O') || (tok == 'P') || (tok == 'Q') || (tok == 'R') || (tok == 'S') || (tok == 'T') || (tok == 'U') || (tok == 'V') || (tok == 'W') || (tok == 'X') || (tok == 'Y') || (tok == 'Z') )
-        return true;
-    else
-        return false;
-}
-
-// ACCEPTS left element, right element, operator element
-// RETURNS operator element w/ truth value of local expression
-slElem evaltv (slElem left, slElem right, slElem  oper)
-{
-    slElem result('$');
-    
-    if (oper.getc() == '&')
-    {
-        if ( (left.gett() == true) && (right.gett() == true) )
-        {
-            result.sett(true);
-            return result;
-        }
-        result.sett(false);
-        return result;
-    }
-    
-    if (oper.getc() == 'v')
-    {
-        if ( (left.gett() == true) ||  (right.gett() == true) )
-        {
-            result.sett(true);
-            return result;
-        }
-        result.sett(false);
-        return result;
-    }
-    
-    if (oper.getc() == '>')
-    {
-        if ( (left.gett() == true) && (right.gett() == false) )
-        {
-            result.sett(false);
-            return result;
-        }
-        result.sett(true);
-        return result;
-    }
-    
-    if (oper.getc() == '=')
-    {
-        if ( ( (left.gett() == true) && (right.gett() == true) ) || ( (left.gett() == false) && (right.gett() == false) ) )
-        {
-            result.sett(true);
-            return result;
-        }
-        result.sett(false);
-        return result;
-    }
-    return result;
-}
-
-// ACCEPTS input infix string
-// RETURNS cleaned infix string
-string cleaner (string expr)
-{
-    while (true)
+    while (true)                                // cleans <-> into =
     {
         size_t found = expr.find("<->");
         if (found!=string::npos)
@@ -226,7 +143,8 @@ string cleaner (string expr)
         else
             break;
     }
-    while (true)
+    
+    while (true)                                // cleans -> into >
     {
         size_t found = expr.find("->");
         if (found!=string::npos)
@@ -237,7 +155,8 @@ string cleaner (string expr)
         else
             break;
     }
-    while (true)
+    
+    while (true)                                // cleans [ into (
     {
         size_t found = expr.find("[");
         if (found!=string::npos)
@@ -248,7 +167,8 @@ string cleaner (string expr)
         else
             break;
     }
-    while (true)
+    
+    while (true)                                // cleans ] into )
     {
         size_t found = expr.find("]");
         if (found!=string::npos)
@@ -259,226 +179,251 @@ string cleaner (string expr)
         else
             break;
     }
+    
     return expr;
 }
 
-// ACCEPTS cleaned infix string
-// RETURNS cleaned postfix string
+
+// <----- Converts Expression to Postfix (Reverse-Polish) Notation ----->
+// <----- ACCEPTS: cleaned infix string ----->
+// <----- RETURNS: cleaned postfix string ----->
 string postfixer (string expr)
 {
-    char token;
-    stack<char> mys;
-    queue<char> myq;
+    char curToken;
+    char peekToken;
+    stack <char> operatorStack;
+    queue <char> myQueue;
     stringstream in = stringstream(expr);
-    in >> token;
+    string outExpr;
+
     while (in)
     {
-        if ( (!(isoperator(token))) && (token != '(') && (token != ')') )
+        in >> curToken;
+        if (!in.good())     // necessary to ensure no double-counting at eof character
+            break;
+        else if (  ( !isOperator(curToken) ) && (( curToken!='(' ) && ( curToken!=')' ))  )      // if token is operand
+            outExpr += curToken;
+        else if ( curToken == '(' )                                                         // if token is (
+            operatorStack.push(curToken);
+        else if ( curToken == ')' )                                                         // if token is )
         {
-            myq.push(token);
-        }
-        else if ( isoperator(token) )
-        {
-            if (token != '~')
+            peekToken = operatorStack.top();
+            operatorStack.pop();
+            while ( peekToken != '(' && !operatorStack.empty() )
             {
-                while ( (!mys.empty()) && (isoperator(mys.top())) )
-                {
-                    myq.push( mys.top() );
-                    mys.pop();
-                }
+                outExpr += peekToken;
+                peekToken = operatorStack.top();
+                operatorStack.pop();
             }
-            mys.push(token);
-            
+            if (peekToken != '(' )
+                outExpr += peekToken;
         }
-        else if (token == '(')
+        else if ( isOperator(curToken) )                                                    // if token is operator
         {
-            mys.push(token);
-            
-        }
-        else if (token == ')')
-        {
-            while ( (!mys.empty()) && (mys.top() != '(' ) )
+            while ( !operatorStack.empty() && operatorStack.top()!= '(' )
             {
-                myq.push( mys.top() );
-                mys.pop();
+                outExpr += operatorStack.top();
+                operatorStack.pop();
             }
-            mys.pop();
+            operatorStack.push(curToken);
         }
-        in >> token;
     }
-    while (!mys.empty())
+    while ( !operatorStack.empty() )
     {
-        myq.push( mys.top() );
-        mys.pop();
-    }
-    string newS;
-    while(!myq.empty())
-    {
-        newS = newS + (myq.front());
-        myq.pop();
+        peekToken = operatorStack.top();
+        operatorStack.pop();
+        outExpr += peekToken;
     }
     
-    return newS;
+    return outExpr;
 }
 
-// ACCEPTS cleaned postfix string
-// RETURNS cleaned postfix element vector
-vector<slElem> elementer (string expr)
+
+// <----- Checks if Token is an Operator ----->
+// <----- ACCEPTS: character token ----->
+// <----- RETURNS: boolean ----->
+bool isOperator (char c)
 {
-    vector<slElem> elemented;
+    if ((c == '&') || (c == 'v') || (c == '~') || (c == '>') || (c == '='))
+        return true;
+    else
+        return false;
+}
+
+
+// <----- Converts Expression from String to Vector of slElement Objects ----->
+// <----- ACCEPTS: cleaned postfix string ----->
+// <----- RETURNS: cleaned postfix slElement vector ----->
+vector<slElement> slElementer (string expr)
+{
+    vector<slElement> elemented;
     
-    for (int i=0; i<expr.size(); i++)
-    {
-        elemented.push_back(slElem (expr[i]) );
-    }
+    for (int i = 0; i < expr.size(); i++)
+        elemented.push_back( slElement (expr[i]) );
+    
     return elemented;
 }
 
-// ACCEPTS input infix string
-// RETURNS cleaned postfix element vector
-vector<slElem> preparer (string expr)
-{
-    expr = cleaner(expr);
-    expr = postfixer(expr);
-    vector<slElem> ready (elementer(expr));
-    return ready;
-}
 
-// ACCEPTS vector of found char letters and a char component
-// RETURNS bool true if present, false if not
-bool amipresent (vector<char> done, char newcompontocheck)
+// <----- Assigns Truth-Values to Atomic Components of Expression ----->
+// <----- ACCEPTS: cleaned postfix slElement vector ----->
+// <----- RETURNS: cleaned postfix slElement vector w/truth value assignments ----->
+vector<slElement> assigner (vector <slElement> elems)
 {
-    for (int i=0; i < done.size(); i++)
-        if (newcompontocheck == done[i])
-            return true;
-    return false;
-}
-
-// ACCEPTS cleaned postfix element vector
-// RETURNS cleaned postfix element vector w/ truth-value assignments
-vector<slElem> assigner (vector<slElem> myElems)
-{
-    vector<char> done;
-    vector<char> compons;
+    string componentsInExpr;
     
-    for (int i = (int(myElems.size())-1); i >= 0; i--)
+    for (int i = 0; i <= elems.size(); i++)
+        if ( !isOperator(elems[i].getChar()) )
+            componentsInExpr += elems[i].getChar();
+    
+    sort( begin(componentsInExpr),end(componentsInExpr) );
+    auto last = unique( begin(componentsInExpr), end(componentsInExpr) );
+    componentsInExpr.erase( last, end(componentsInExpr) );
+    
+    int numUniqueComp = int(componentsInExpr.length() - 1);
+    
+    char uniqueComponents [numUniqueComp];
+    
+    strcpy(uniqueComponents, componentsInExpr.substr(1, componentsInExpr.length()).c_str());
+    
+    string truthValResponse;
+    bool truthValBool;
+    for (int i = 0; i < numUniqueComp; i++)
     {
-        if ( issentchar( myElems[i].getc() ) )
-            compons.push_back( myElems[i].getc() );
-    }
-
-    done.push_back(compons[0]);
-    
-    for (int i=1; i < compons.size(); i++)
-        if ( ! (amipresent(done, compons[i])) )
-            done.push_back(compons[i]);
-    
-    while ( ! done.empty() )
-    {
-        char tvac;
-        bool tvab;
+        cout << "Please enter the truth-value assignment for atomic component " << uniqueComponents[i] << " :  ";
+        cin >> truthValResponse;
         
-        for (int i=(int(done.size())-1); i >= 0; i--)
-        {
-            cout << "Please enter the truth-value assignment for sentence \" " << done[i] << " \" :  ";
-            cin >> tvac;
-            
-            if (tvac == 'T' || tvac == 't' || tvac == '1')
-                tvab = true;
-            else
-                tvab = false;
-            
-            for (int j=0; j<myElems.size(); j++)
-            {
-                if ( (myElems[j].getc()) == done[i])
-                {
-                    myElems[j].sett(tvab);
-                }
-            }
-            done.pop_back();
-        }
+        if (truthValResponse == "T" || truthValResponse == "t" || truthValResponse == "1" || truthValResponse == "TRUE" || truthValResponse == "True" || truthValResponse == "true" || truthValResponse == "YES" || truthValResponse == "Yes" || truthValResponse == "yes" || truthValResponse == "Y" || truthValResponse == "y")
+            truthValBool = true;
+        else
+            truthValBool = false;
+        
+        for (int j = 0; j < elems.size(); j++)
+            if ( (elems[j].getChar()) == uniqueComponents[i])
+                elems[j].setTruth(truthValBool);
     }
-    return myElems;
+    
+    return elems;
 }
 
-// ACCEPTS cleaned postfix elemen vector w/ truth-value assignments
-// RETURNS boolean truth-value of expression
-bool evalbase (vector<slElem> myElems)
+
+// <----- Evaluates Expression (Base) ----->
+// <----- ACCEPTS: cleaned postfix slElement vector w/truth value assignments ----->
+// <----- RETURNS: boolean truth-value of expression ----->
+bool evalBase (vector<slElement> elems)
 {
-    stack<slElem> mys;
-    for (int i = 0; i<myElems.size(); i++)
+    stack<slElement> evalStack;
+    
+    for (int i = 0; i < elems.size(); i++)
     {
-        if(!(isoperator(myElems[i].getc())))
-            mys.push(myElems[i]);
-        if (isoperator(myElems[i].getc()))
+        if ( !isOperator(elems[i].getChar()) )      // If Operand
+            evalStack.push(elems[i]);                   // push to stack
+    
+        else                                        // If Operator
         {
-            if ( myElems[i].getc() == '~' )
-            {
-                mys.top().sett( !( mys.top().gett() ) );
+            if ( elems[i].getChar() == '~' )            // If unary operator ~
+            {                                               // evaluate (negate)
+                evalStack.top().setTruth( !(evalStack.top().getTruthVal()) );
             }
-            else
-            {
-                slElem right( (mys.top().getc()), (mys.top().gett()) );
-                mys.pop();
-                slElem left ( (mys.top().getc()), (mys.top().gett()) );
-                mys.pop();
+            else                                        // If binary operator
+            {                                               // perform binary eval (pass to eval func)
+                slElement right( evalStack.top().getChar(), evalStack.top().getTruthVal() );
+                evalStack.pop();
+                slElement left( evalStack.top().getChar(), evalStack.top().getTruthVal() );
+                evalStack.pop();
+                slElement oper( elems[i].getChar(), elems[i].getTruthVal() );
                 
-                slElem oper( (myElems[i].getc()), (myElems[i].gett()) );
-                
-                mys.push( evaltv(left, right, oper) );
+                evalStack.push ( eval(left, right, oper) );
             }
         }
     }
-    return mys.top().gett();
-    
+    return evalStack.top().getTruthVal();
 }
 
-// Provides intro, gets input string expr, prepares for eval, and calls all necessary functions
-// Controls play loop w/ call to cont
-int main(int argc, const char * argv[])
+
+// <----- Performs Binary Operator Evaluation ----->
+// <----- ACCEPTS: left slElement, right slElement, operator slElement ----->
+// <----- RETURNS: operator element w/truth value of local expression ----->
+slElement  eval (slElement left, slElement right, slElement oper)
 {
-    introtext();
+    slElement result( '$' );    // Resulting slElement uses '$' charVal to flag as non-operator in further eval
     
-    bool play = true;
-    string myexpr;
-    
-    while (play)
+    if ( oper.getChar() == '&' )                        // If Conjunction &
     {
-        bool result;
-        cout << "------ ----- ---- ------------" << endl;
-        cout << "------ ----- ---- ------------" << endl;
-        cout << "Please enter your proposition:" << endl;
-        cin >> myexpr;
-        
-        vector<slElem> ready (preparer(myexpr));
-        
-        ready = assigner(ready);
-        
-        result = evalbase(ready);
-        
-        cout << endl << endl << "                     ";
-        for(int i=0; i<myexpr.size(); i++)
-            cout << "-";
-        cout << endl << "Your expression      " << myexpr << endl;
-        cout << "has a truth value of ";
-        
-        if (result)
+        if ( (left.getTruthVal() == true) && (right.getTruthVal() == true) )
         {
-            cout << "TRUE" << endl;
-            cout << "                     ----" << endl;
+            result.setTruth(true);
+            return result;
         }
         else
         {
-            cout << "FALSE" << endl;
-            cout << "                     -----" << endl;
+            result.setTruth(false);
+            return result;
         }
-        
-        cout << endl << endl;
-        
-        play = cont();
     }
     
+    else if ( oper.getChar() == 'v' )                   // If Disjunction v
+    {
+        if ( (left.getTruthVal() == true) || (right.getTruthVal() == true) )
+        {
+            result.setTruth(true);
+            return result;
+        }
+        else
+        {
+            result.setTruth(false);
+            return result;
+        }
+    }
     
-    cout << endl;
-    return 0;
+    else if ( oper.getChar() == '>' )                   // If Conditional >
+    {
+        if ( (left.getTruthVal() == true) && (right.getTruthVal() == false) )
+        {
+            result.setTruth(false);
+            return result;
+        }
+        else
+        {
+            result.setTruth(true);
+            return result;
+        }
+    }
+    
+    else if ( oper.getChar() == '=' )                   // If Biconditional =
+    {
+        if ( left.getTruthVal() == right.getTruthVal() )
+        {
+            result.setTruth(true);
+            return result;
+        }
+        else
+        {
+            result.setTruth(false);
+            return result;
+        }
+    }
+    
+    return result;
+}
+
+
+// <----- Controls User Interaction for Primary Functionality ----->
+// <----- ACCEPTS: n/a ----->
+// <----- RETURNS: boolean ----->
+bool cont()
+{
+    string contresp;
+    cout << endl << endl;
+    cout << "Would you like to evaluate another proposition?  ( Y / N ) " << endl;
+    cout << "----- --- ---- -- -------- ------- ------------" << endl;
+    
+    cin >> contresp;
+    cout << endl << endl;
+    
+    if (contresp == "Y" || contresp == "y" || contresp == "YES" || contresp == "yes" || contresp == "Yes")
+        return true;
+    else if (contresp == "N" || contresp == "n" || contresp == "NO" || contresp == "no" || contresp == "No")
+        cout << "Thank you for using Slac!" << endl << "Exiting with normal conditions now." << endl;
+    return false;
 }
