@@ -1,3 +1,12 @@
+2020 Slac Rework 
+Essentially a re-implementation of the original Slac
+Better commented, more efficient, & overall just more clean
+
+
+--
+
+
+
 VERSION 1.1 UPDATES
 ------- --- -------
 +  In the Slac 1.0 release version, users had to manually specify and assign truth-values for each atomic component/sentence. Slac 1.1 replaces this with an automatic scan/prompt system. This is a bit more time & memory-intensive, but serves for a much better user experience.
